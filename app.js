@@ -54,7 +54,7 @@ if (PARSE_ENV.toLocaleLowerCase().startsWith('d')) {
   });
   httpServer.listen(80);
   const httpsServer = https.createServer(credentials, app);
-  httpsServer.listen(PARSE_PORT, function() {
+  httpsServer.listen(443, function() {
     console.log(`> Running Server on ${domain}`);
   });
   server = httpsServer;
