@@ -1,7 +1,41 @@
 const ParseDashboard = require('parse-dashboard');
 const vars = require('./vars');
 
-const { APP_ID, MASTER_KEY, APP_NAME, APP_DASHBOARD_ENDPOINT } = vars;
+const {
+  APP_ID,
+  MASTER_KEY,
+  APP_NAME,
+  APP_DASHBOARD_ENDPOINT,
+  DASHBOARD_USERS
+} = vars;
+
+const parseDashboardUsers = str =>
+  String(str)
+    .split(';')
+    .filter(e => e)
+    .map(userStr =>
+      userStr
+        .split(',')
+        .filter(e => e)
+        .reduce((pre, curr, inx, arr) => {
+          if (inx == 0) {
+            pre['user'] = curr || `user${inx}`;
+            return pre;
+          } else if (inx == 1) {
+            pre['pass'] = curr || `pass${inx}`;
+            return pre;
+          }
+        }, {})
+    )
+    .map((obj, i) => {
+      if (!obj['user']) {
+        obj['user'] = 'user' + i;
+      }
+      if (!obj['pass']) {
+        obj['pass'] = 'pass' + i;
+      }
+      return obj;
+    });
 
 const dashboard = new ParseDashboard(
   {
@@ -14,17 +48,7 @@ const dashboard = new ParseDashboard(
         supportedPushLocales: ['en', 'ru', 'fr', 'es']
       }
     ],
-    users: [
-      {
-        user: 'user1',
-        pass: '$2y$12$7Kh94U1yHd6.nxXZtYqLvekIcXO.b7XAM8YziAinF9uxQ2BhtgSfi' // pass1
-      },
-      {
-        user: 'user2',
-        pass: '$2y$12$YgQstcgs2jSY8gkt7dxVTOxvE41P.Pzyovq2xmfnKd.4/LF.3ousm' // pass2
-      }
-    ],
-    useEncryptedPasswords: true // https://bcrypt-generator.com/
+    users: parseDashboardUsers(DASHBOARD_USERS)
   },
   { allowInsecureHTTP: false }
 );
