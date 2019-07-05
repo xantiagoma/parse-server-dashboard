@@ -37,7 +37,8 @@ const parseServer = new ParseServer({
     : `https://${DOMAIN}${APP_DASHBOARD_ENDPOINT}`,
   liveQuery: USE_LIVEQUERY
     ? {
-        classNames: LIVEQUERY_CLASSES.split(',')
+        classNames: LIVEQUERY_CLASSES.split(','),
+        redisURL: 'redis://localhost:6379'
       }
     : undefined
 });

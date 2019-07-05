@@ -48,17 +48,25 @@ if (PARSE_ENV.toLocaleLowerCase().startsWith('d')) {
     ca: ca
   };
   domain = `https://${DOMAIN}`;
+  /*
   const httpServer = express();
   httpServer.all('*', function(req, res) {
     res.redirect('https://' + req.headers.host + req.url);
   });
   httpServer.listen(80);
+  */
   const httpsServer = https.createServer(credentials, app);
   httpsServer.listen(443, function() {
     console.log(`> Running Server on ${domain}`);
   });
-  server = httpsServer;
+  const httpServer = http.createServer(app);
+  httpServer.listen(80, err => {
+    if (err) throw err;
+    console.log(`> Running HTTP Server on ${domain}`);
+  });
+  server = httpServer;
 }
+
 if (USE_LIVEQUERY) {
   const parseLiveQueryServer = ParseServer.createLiveQueryServer(server, {
     appId: APP_ID,
@@ -73,6 +81,7 @@ if (USE_LIVEQUERY) {
     serverURL: `${domain}${APP_DASHBOARD_ENDPOINT}`,
     websocketTimeout: 10 * 1000,
     cacheTimeout: 60 * 600 * 1000,
-    logLevel: 'VERBOSE'
+    logLevel: 'VERBOSE',
+    redisURL: 'redis://localhost:6379'
   });
 }
