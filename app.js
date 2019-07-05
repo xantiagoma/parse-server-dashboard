@@ -10,7 +10,8 @@ const {
   JS_KEY,
   CLIENT_KEY,
   DOTNET_KEY,
-  APP_DASHBOARD_ENDPOINT
+  APP_DASHBOARD_ENDPOINT,
+  REDIS_URL
 } = vars;
 
 const parseServer = require('./server');
@@ -27,17 +28,22 @@ app.use(express.json());
 app.use('/parse', parseServer);
 app.use('/dashboard', parseDashboard);
 
-let server;
-let domain;
-if (PARSE_ENV.toLocaleLowerCase().startsWith('d')) {
-  domain = `http://localhost:${PARSE_PORT_DEV}`;
-  const httpServer = http.createServer(app);
-  httpServer.listen(PARSE_PORT_DEV, err => {
-    if (err) throw err;
-    console.log(`> Running Dev Server on ${domain}`);
-  });
-  server = httpServer;
-} else {
+const IN_DEV = PARSE_ENV.toLocaleLowerCase().startsWith('d');
+const domain = IN_DEV
+  ? `http://localhost:${PARSE_PORT_DEV}`
+  : `https://${DOMAIN}`;
+
+const httpServer = http.createServer(app);
+httpServer.listen(IN_DEV ? PARSE_PORT_DEV : 80, err => {
+  if (err) throw err;
+  console.log(
+    IN_DEV
+      ? `> Running DEV Server on ${domain}`
+      : `> Running HTTP Server on ${domain}`.replace('https://', 'http://')
+  );
+});
+
+if (!IN_DEV) {
   const DOMAIN_DIR = `/etc/letsencrypt/live/${DOMAIN}`;
   const privateKey = fs.readFileSync(`${DOMAIN_DIR}/privkey.pem`, 'utf8');
   const certificate = fs.readFileSync(`${DOMAIN_DIR}/cert.pem`, 'utf8');
@@ -47,28 +53,14 @@ if (PARSE_ENV.toLocaleLowerCase().startsWith('d')) {
     cert: certificate,
     ca: ca
   };
-  domain = `https://${DOMAIN}`;
-  /*
-  const httpServer = express();
-  httpServer.all('*', function(req, res) {
-    res.redirect('https://' + req.headers.host + req.url);
-  });
-  httpServer.listen(80);
-  */
   const httpsServer = https.createServer(credentials, app);
   httpsServer.listen(443, function() {
     console.log(`> Running Server on ${domain}`);
   });
-  const httpServer = http.createServer(app);
-  httpServer.listen(80, err => {
-    if (err) throw err;
-    console.log(`> Running HTTP Server on ${domain}`);
-  });
-  server = httpServer;
 }
 
 if (USE_LIVEQUERY) {
-  const parseLiveQueryServer = ParseServer.createLiveQueryServer(server, {
+  ParseServer.createLiveQueryServer(server, {
     appId: APP_ID,
     masterKey: MASTER_KEY,
     keyPairs: {
@@ -82,6 +74,6 @@ if (USE_LIVEQUERY) {
     websocketTimeout: 10 * 1000,
     cacheTimeout: 60 * 600 * 1000,
     logLevel: 'VERBOSE',
-    redisURL: 'redis://localhost:6379'
+    redisURL: REDIS_URL
   });
 }

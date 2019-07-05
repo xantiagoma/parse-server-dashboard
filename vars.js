@@ -21,13 +21,14 @@ const {
   REST_KEY = 'secretRestAPIKeyDefault',
   DOTNET_KEY = 'secretDotNetKeyDefault',
   PARSE_PORT_DEV = process.env.PORT || 3000,
-  DB_URI,
-  DOMAIN,
+  DB_URI = 'mongodb://localhost:27017/myproject',
+  DOMAIN = 'localhost',
   USE_LIVEQUERY = true,
   LIVEQUERY_CLASSES = '',
   USE_CLOUD_PATH = false,
   CLOUD_PATH = path.join(__dirname, 'cloud/main.js'),
-  DASHBOARD_USERS = 'admin,adminpass;user,userpass'
+  DASHBOARD_USERS = 'admin,adminpass;user,userpass',
+  REDIS_URL = 'redis://localhost:6379'
 } = process.env;
 
 module.exports = {
@@ -48,5 +49,6 @@ module.exports = {
   LIVEQUERY_CLASSES,
   USE_CLOUD_PATH: toBoolean(USE_CLOUD_PATH),
   CLOUD_PATH,
-  DASHBOARD_USERS
+  DASHBOARD_USERS,
+  REDIS_URL
 };

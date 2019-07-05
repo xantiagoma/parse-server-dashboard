@@ -18,7 +18,8 @@ const {
   USE_LIVEQUERY,
   USE_CLOUD_PATH,
   CLOUD_PATH,
-  DOMAIN
+  DOMAIN,
+  REDIS_URL
 } = vars;
 
 const isDev = PARSE_ENV.toLocaleLowerCase().startsWith('d');
@@ -38,7 +39,7 @@ const parseServer = new ParseServer({
   liveQuery: USE_LIVEQUERY
     ? {
         classNames: LIVEQUERY_CLASSES.split(','),
-        redisURL: 'redis://localhost:6379'
+        redisURL: REDIS_URL
       }
     : undefined
 });
