@@ -60,7 +60,7 @@ if (!IN_DEV) {
 }
 
 if (USE_LIVEQUERY) {
-  ParseServer.createLiveQueryServer(server, {
+  ParseServer.createLiveQueryServer(httpServer, {
     appId: APP_ID,
     masterKey: MASTER_KEY,
     keyPairs: {
