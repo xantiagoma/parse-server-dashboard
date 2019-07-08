@@ -30,10 +30,11 @@ Parse.Cloud.beforeSave('Venue', async request => {
   const resp = await Parse.Cloud.httpRequest({
     url: `https://www.waze.com/maps/api/place/details/json?key=${wazeApiKey}&placeid=${wazePlaceId}`
   });
-  const { formatted_address: address, geometry, url } = resp.data.result;
+  const { formatted_address: address, geometry, url, name } = resp.data.result;
   const { location } = geometry;
   const { lat, lng } = location;
   request.object.set('address', address);
   request.object.set('url', url);
+  request.object.set('name', name);
   request.object.set('location', new Parse.GeoPoint(+lat, +lng));
 });
