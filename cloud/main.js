@@ -25,6 +25,12 @@ Parse.Cloud.job('updateWazeKey', async request => {
 
 Parse.Cloud.beforeSave('Venue', async request => {
   const wazePlaceId = request.object.get('wazePlaceId');
+  const results = await new Parse.Query('Venue')
+    .equalTo('wazePlaceId', wazePlaceId)
+    .find();
+  if (results.length > 0) {
+    throw `Place (wazePlaceId: ${wazePlaceId}) already exists`;
+  }
   const config = await Parse.Config.get();
   const wazeApiKey = config.get('WAZE_KEY');
   const resp = await Parse.Cloud.httpRequest({
