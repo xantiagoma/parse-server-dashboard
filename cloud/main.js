@@ -1,15 +1,43 @@
-Parse.Cloud.define('hello', req => {
-  return "Hello from Local's Simple Cloud Code :)";
+Parse.Cloud.define('parkingsFor', async ({ params }) => {
+  const { location, pagetoken } = params;
+  const config = await Parse.Config.get();
+  const googleMapsApiKey = config.get('GOOGLE_MAPS_KEY');
+  const reqParams = {
+    location,
+    radius: '1500',
+    type: 'parking',
+    key: googleMapsApiKey,
+    pagetoken
+  };
+  const req = await Parse.Cloud.httpRequest({
+    url: 'https://maps.googleapis.com/maps/api/place/nearbysearch/json',
+    params: reqParams
+  });
+  return req.data;
 });
 
-Parse.Cloud.job('myJob', request => {
-  // params: passed in the job call
-  // headers: from the request that triggered the job
-  // log: the ParseServer logger passed in the request
-  // message: a function to update the status message of the job object
-  const { params, headers, log, message } = request;
-  message('I just started');
-  return JSON.stringify(request, null, 2);
+Parse.Cloud.define('populateParkingsFor', async ({ params }) => {
+  var Venue = Parse.Object.extend('Venue');
+  const { location } = params;
+  let pagetoken = undefined;
+  let total = 0;
+  for (let index = 0; index < 10; index++) {
+    const resp = await Parse.Cloud.run('parkingsFor', { location, pagetoken });
+    pagetoken = resp.next_page_token;
+    if (!pagetoken) {
+      break;
+    }
+    for (const venueObj of resp.results) {
+      const { place_id } = venueObj;
+      const venue = new Venue();
+      venue.set('wazePlaceId', place_id);
+      try {
+        await venue.save();
+        total++;
+      } catch (e) {}
+    }
+  }
+  return { total };
 });
 
 Parse.Cloud.job('updateWazeKey', async request => {
